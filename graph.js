@@ -30,7 +30,16 @@ const arcPath = d3
 
 //   console.log(arcPath(angles[0]))
 
-const color = d3.scaleOrdinal(d3['schemeSet3'])
+const color = d3.scaleOrdinal(d3['schemeSet3']);
+
+//Legend setup
+const legendGroup = svg.append('g')
+.attr('transform', `translate(${dims.width + 40}, 10)`);
+
+const legend = d3.legendColor()
+.shape('circle')
+.shapePadding(10)
+.scale(color);
 
 // update function
 
@@ -41,15 +50,19 @@ const update = data => {
 
   color.domain(data.map(d => d.name));
 
+  // update and call legend
+  legendGroup.call(legend);
+  legendGroup.selectAll('text').attr('fill', 'white');
+
   //join enhanced (pie) data to path elements
   const paths = graph.selectAll('path')
   .data(pie(data));
 
   //handle the current DOM path updates
 
-  paths.attr('d', arcPath)
+  paths
   .transition().duration(750)
-  .arcTween('d', arcTweenUpdate);
+  .attrTween('d', arcTweenUpdate);
 
   // handle the exit selection
 
