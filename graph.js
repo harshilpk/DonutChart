@@ -30,16 +30,18 @@ const arcPath = d3
 
 //   console.log(arcPath(angles[0]))
 
-const color = d3.scaleOrdinal(d3['schemeSet3']);
+const color = d3.scaleOrdinal(d3["schemeSet3"]);
 
 //Legend setup
-const legendGroup = svg.append('g')
-.attr('transform', `translate(${dims.width + 40}, 10)`);
+const legendGroup = svg
+  .append("g")
+  .attr("transform", `translate(${dims.width + 40}, 10)`);
 
-const legend = d3.legendColor()
-.shape('circle')
-.shapePadding(10)
-.scale(color);
+const legend = d3
+  .legendColor()
+  .shape("circle")
+  .shapePadding(10)
+  .scale(color);
 
 // update function
 
@@ -52,35 +54,47 @@ const update = data => {
 
   // update and call legend
   legendGroup.call(legend);
-  legendGroup.selectAll('text').attr('fill', 'white');
+  legendGroup.selectAll("text").attr("fill", "white");
 
   //join enhanced (pie) data to path elements
-  const paths = graph.selectAll('path')
-  .data(pie(data));
+  const paths = graph.selectAll("path").data(pie(data));
 
   //handle the current DOM path updates
 
   paths
-  .transition().duration(750)
-  .attrTween('d', arcTweenUpdate);
+    .transition()
+    .duration(750)
+    .attrTween("d", arcTweenUpdate);
 
   // handle the exit selection
 
-  paths.exit()
-  .transition().duration(750)
-  .attrTween('d', arcTweenExit)
-  .remove();
+  paths
+    .exit()
+    .transition()
+    .duration(750)
+    .attrTween("d", arcTweenExit)
+    .remove();
 
-  paths.enter()
-  .append('path')
-  .attr('class', 'arc')
-//   .attr('d', arcPath)
-  .attr('stroke', '#fff')
-  .attr('stroke-width', 3)
-  .attr('fill', d => color(d.data.name))
-  .each(function(d){ this._current = d})
-  .transition().duration(750)
-  .attrTween('d', arcTweenEnter);
+  paths
+    .enter()
+    .append("path")
+    .attr("class", "arc")
+    //   .attr('d', arcPath)
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 3)
+    .attr("fill", d => color(d.data.name))
+    .each(function(d) {
+      this._current = d;
+    })
+    .transition()
+    .duration(750)
+    .attrTween("d", arcTweenEnter);
+
+    // add events
+
+    graph.selectAll('path')
+    .on('mouseover', handleMouseOver)
+    .on('mouseout', handleMouseOut)
 
   console.log(paths.enter());
 };
@@ -112,39 +126,52 @@ db.collection("expenses").onSnapshot(res => {
   update(data);
 });
 
-const arcTweenEnter = (d) => {
-    let i = d3.interpolate(d.endAngle, d.startAngle);
+const arcTweenEnter = d => {
+  let i = d3.interpolate(d.endAngle, d.startAngle);
 
-    return t => {
+  return t => {
+    d.startAngle = i(t);
+    return arcPath(d);
+  };
+};
 
-        d.startAngle = i(t);
-        return arcPath(d);
-        
-    }
-}
+const arcTweenExit = d => {
+  let i = d3.interpolate(d.startAngle, d.endAngle);
 
-const arcTweenExit = (d) => {
-    let i = d3.interpolate(d.startAngle, d.endAngle);
-
-    return t => {
-
-        d.startAngle = i(t);
-        return arcPath(d);
-        
-    }
-}
+  return t => {
+    d.startAngle = i(t);
+    return arcPath(d);
+  };
+};
 
 // use function keyword to accomodate this function
 function arcTweenUpdate(d) {
-    // console.log(this._current, d);
+  // console.log(this._current, d);
 
-    //interpolate between the two objects
-    let i = d3.interpolate(this._current, d);
+  //interpolate between the two objects
+  let i = d3.interpolate(this._current, d);
 
-    // update the current prop with new updated data
-    this._current = i(1);
+  // update the current prop with new updated data
+  this._current = i(1);
 
-    return function(t) {
-        return arcPath(i(t));
-    }
+  return function(t) {
+    return arcPath(i(t));
+  };
+}
+
+// event handlers
+const handleMouseOver = (d, i, n) => {
+    // console.log(n[i]);
+
+    d3.select(n[i])
+    .transition('changeSliceFill').duration(300)
+    .attr('fill', '#fff')
+}
+
+
+const handleMouseOut = (d,i,n) => {
+
+    d3.select(n[i])
+    .transition('changeSliceFill').duration(300)
+    .attr('fill', color(d.data.name))
 }
