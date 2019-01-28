@@ -90,11 +90,13 @@ const update = data => {
     .duration(750)
     .attrTween("d", arcTweenEnter);
 
-    // add events
+  // add events
 
-    graph.selectAll('path')
-    .on('mouseover', handleMouseOver)
-    .on('mouseout', handleMouseOut)
+  graph
+    .selectAll("path")
+    .on("mouseover", handleMouseOver)
+    .on("mouseout", handleMouseOut)
+    .on("click", handleClick);
 
   console.log(paths.enter());
 };
@@ -161,17 +163,24 @@ function arcTweenUpdate(d) {
 
 // event handlers
 const handleMouseOver = (d, i, n) => {
-    // console.log(n[i]);
+  // console.log(n[i]);
 
-    d3.select(n[i])
-    .transition('changeSliceFill').duration(300)
-    .attr('fill', '#fff')
-}
+  d3.select(n[i])
+    .transition("changeSliceFill")
+    .duration(300)
+    .attr("fill", "#fff");
+};
 
+const handleMouseOut = (d, i, n) => {
+  d3.select(n[i])
+    .transition("changeSliceFill")
+    .duration(300)
+    .attr("fill", color(d.data.name));
+};
 
-const handleMouseOut = (d,i,n) => {
+const handleClick = d => {
+//   console.log(d);
 
-    d3.select(n[i])
-    .transition('changeSliceFill').duration(300)
-    .attr('fill', color(d.data.name))
-}
+const id = d.data.id;
+db.collection('expenses').doc(id).delete();
+};
